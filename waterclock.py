@@ -5,11 +5,11 @@ import json
 from datetime import datetime, timedelta
 import time
 import os
-import random  # Added import for the random module
-
+import random
+from plyer import notification  # For desktop notifications
 
 # Default settings
-DEFAULT_INTERVAL = 3600  # 1 hour in seconds
+DEFAULT_INTERVAL = 3600  # 1 minute in seconds for frequent reminders
 HYDRATION_GOAL = 8  # 8 glasses per day
 progress = 0  # Track daily water intake progress
 interval = DEFAULT_INTERVAL  # Set default interval
@@ -26,12 +26,20 @@ def load_settings():
             progress = settings.get("progress", 0)
 
 def save_settings():
-    with open(settings_file, "w") as file:  # 'w' mode specified here for clarity
+    with open(settings_file, "w") as file:
         json.dump({"interval": interval, "progress": progress}, file)
 
 # Function to play alarm sound
 def play_alarm_sound():
     playsound("alarm_sound.mp3")
+
+# Function to show desktop notification
+def show_desktop_notification():
+    notification.notify(
+        title="Water Reminder",
+        message="It's time to drink water! Stay hydrated.",
+        timeout=10  # Duration in seconds
+    )
 
 # Function to display the reminder window
 def show_reminder():
@@ -73,7 +81,7 @@ def dismiss_reminder(root):
 # Function to snooze the alarm
 def snooze_alarm(root):
     root.destroy()
-    next_alarm = datetime.now() + timedelta(minutes=10)  # Snooze for 10 minutes
+    next_alarm = datetime.now() + timedelta(minutes=1)  # Snooze for 1 minute
     schedule_next_alarm(next_alarm)
 
 # Function to schedule the next alarm based on the interval
@@ -83,8 +91,9 @@ def schedule_next_alarm(start_time):
         now = datetime.now()
         if now >= start_time:
             show_reminder()
+            show_desktop_notification()  # Show desktop notification every minute
             start_time = now + timedelta(seconds=interval)
-        time.sleep(1)  # Check every second
+        time.sleep(1)
 
 # Clock update function
 def update_clock(clock_label):
